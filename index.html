@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>机票盲盒 · 未知旅程探索（低交互版）</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Microsoft+YaHei:wght@400;500;600;700&display=swap">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0d1b3e 0%, #1a2b5e 100%);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        /* 星空背景效果 */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(1.5px 1.5px at 20px 30px, rgba(255, 255, 255, 0.3) 1px, transparent 50%),
+                radial-gradient(1.5px 1.5px at 60px 150px, rgba(255, 255, 255, 0.4) 1px, transparent 50%),
+                radial-gradient(2px 2px at 120px 80px, rgba(255, 255, 255, 0.3) 1px, transparent 50%);
+            background-size: 300px 300px;
+            z-index: 0;
+            opacity: 0.7;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* 标题区域 */
+        header {
+            text-align: center;
+            margin-bottom: 5px;
+            width: 100%;
+        }
+        
+        .title {
+            color: white;
+            font-size: 2.6rem;
+            margin-bottom: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+        }
+        
+        .title-icon {
+            font-size: 3rem;
+            filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+            animation: gentleFloat 3s infinite ease-in-out;
+        }
+        
+        @keyframes gentleFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-5px) rotate(2deg); }
+        }
+        
+        .subtitle {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 1.3rem;
+            font-weight: 600;
+            max-width: 700px;
+            line-height: 1.6;
+            margin: 0 auto;
+            letter-spacing: 0.5px;
+        }
+        
+        .tagline {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-top: 8px;
+            font-style: italic;
+        }
+        
+        /* 主卡片区域 */
+        .main-card {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 24px;
+            padding: 35px 40px;
+            width: 100%;
+            max-width: 850px;
+            box-shadow: 
+                0 20px 50px rgba(0, 0, 0, 0.3),
+                0 0 0 1px rgba(255, 255, 255, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            min-height: 500px;
+        }
+        
+        .main-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #FF6B6B, #4A90E2, #FFD166);
+            border-radius: 24px 24px 0 0;
+        }
+        
+        /* 滚动区域容器 */
+        .content-area {
+            position: relative;
+            width: 100%;
+            transition: all 0.8s ease;
+        }
+        
+        /* 滚动容器 */
+        .scroll-container {
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+            padding: 20px 0;
+            margin: 15px 0 20px 0;
+            border-radius: 16px;
+            background: linear-gradient(to right, #f8f9ff, #f0f5ff);
+            border: 1px solid rgba(74, 144, 226, 0.2);
+            box-shadow: inset 0 0 20px rgba(74, 144, 226, 0.1);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        
+        .scroll-container::before,
+        .scroll-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 100px;
+            z-index: 2;
+            pointer-events: none;
+        }
+        
+        .scroll-container::before {
+            left: 0;
+            background: linear-gradient(to right, rgba(248, 249, 255, 1) 30%, transparent);
+        }
+        
+        .scroll-container::after {
+            right: 0;
+            background: linear-gradient(to left, rgba(248, 249, 255, 1) 30%, transparent);
+        }
+        
+        #scroll-content {
+            display: flex;
+            gap: 24px;
+            width: max-content;
+            padding-left: 20px;
+        }
+        
+        /* 匀速滚动动画 */
+        @keyframes smoothScroll {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-1560px);
+            }
+        }
+        
+        .smooth-scrolling {
+            animation: smoothScroll 18s linear forwards;
+        }
+        
+        /* 信息卡片 */
+        .info-card {
+            background: white;
+            border-radius: 16px;
+            padding: 22px 28px;
+            min-width: 220px;
+            text-align: center;
+            box-shadow: 
+                0 8px 25px rgba(0, 0, 0, 0.1),
+                0 0 0 1px rgba(0, 0, 0, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            flex-shrink: 0;
+            transition: all 0.3s;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+        
+        .info-card.highlight {
+            background: linear-gradient(145deg, #fff9e6, #ffffff);
+            box-shadow: 
+                0 12px 35px rgba(255, 209, 102, 0.25),
+                0 0 0 2px rgba(255, 209, 102, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
+        }
+        
+        .destination {
+            font-size: 1.9rem;
+            font-weight: 700;
+            margin: 10px 0;
+            color: #1a2b5e;
+            letter-spacing: 0.5px;
+        }
+        
+        .benefit {
+            font-size: 1.4rem;
+            color: #283593;
+            font-weight: 600;
+            padding: 8px 18px;
+            background: rgba(74, 144, 226, 0.12);
+            border-radius: 10px;
+            display: inline-block;
+            border: 1px solid rgba(74, 144, 226, 0.2);
+        }
+        
+        /* 等待区域 */
+        .waiting-area {
+            margin-top: 25px;
+            padding: 22px 32px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 18px;
+            text-align: center;
+            width: 100%;
+            box-shadow: 
+                0 8px 25px rgba(0, 0, 0, 0.08),
+                0 0 0 1px rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(74, 144, 226, 0.1);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        
+        .waiting-text {
+            font-size: 1.3rem;
+            color: #4A90E2;
+            margin-bottom: 22px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .loading-icons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 22px;
+            height: 70px;
+        }
+        
+        .icon {
+            font-size: 3.2rem;
+            display: inline-block;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.15));
+        }
+        
+        /* 图标跳动动画 */
+        @keyframes gentleBounce {
+            0%, 100% { 
+                transform: translateY(0) scale(1); 
+            }
+            50% { 
+                transform: translateY(-12px) scale(1.08); 
+            }
+        }
+        
+        .icon:nth-child(1) { 
+            animation: gentleBounce 1.6s infinite ease-in-out; 
+        }
+        
+        .icon:nth-child(2) { 
+            animation: gentleBounce 1.6s infinite ease-in-out 0.2s; 
+        }
+        
+        .icon:nth-child(3) { 
+            animation: gentleBounce 1.6s infinite ease-in-out 0.4s; 
+        }
+        
+        /* 互动按钮区域 - 简化，移除多余文字 */
+        .interaction-area {
+            margin-top: 25px;
+            padding: 30px 32px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 18px;
+            text-align: center;
+            width: 100%;
+            box-shadow: 
+                0 8px 25px rgba(0, 0, 0, 0.08),
+                0 0 0 1px rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(74, 144, 226, 0.1);
+            display: none; /* 初始隐藏 */
+        }
+        
+        /* 移除.interaction-text样式，不再使用 */
+        
+        /* 互动按钮样式 */
+        .reveal-button {
+            background: linear-gradient(135deg, #4A90E2, #357AE8);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            padding: 20px 50px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(74, 144, 226, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            margin: 10px 0;
+        }
+        
+        .reveal-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 30px rgba(74, 144, 226, 0.4);
+            background: linear-gradient(135deg, #357AE8, #2A65C9);
+        }
+        
+        .reveal-button:active {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(74, 144, 226, 0.3);
+        }
+        
+        .reveal-button:disabled {
+            background: linear-gradient(135deg, #cccccc, #aaaaaa);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .button-icon {
+            font-size: 1.8rem;
+        }
+        
+        /* 移除.hint样式，不再使用 */
+        
+        /* 最终悬念卡片 - 从下方升起 */
+        .final-card {
+            background: linear-gradient(145deg, #ffffff, #f8f9ff);
+            border-radius: 24px;
+            padding: 40px 45px;
+            width: 100%;
+            box-shadow: 
+                0 25px 60px rgba(0, 0, 0, 0.2),
+                0 0 0 1px rgba(255, 255, 255, 0.9);
+            text-align: center;
+            opacity: 0;
+            transform: translateY(100%) scale(0.95);
+            transition: transform 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+                        opacity 1s ease-out;
+            border: 1px solid rgba(74, 144, 226, 0.25);
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 10;
+            overflow-y: auto;
+            max-height: 100%;
+            will-change: transform, opacity;
+            display: none; /* 初始隐藏 */
+        }
+        
+        .final-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, #FF6B6B, #FFD166, #4A90E2);
+            border-radius: 24px 24px 0 0;
+        }
+        
+        .final-card.show {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            display: block;
+        }
+        
+        /* 当最终卡片显示时，隐藏上方内容 */
+        .content-area.hidden {
+            opacity: 0;
+            transform: translateY(-20px);
+            pointer-events: none;
+        }
+        
+        .final-icon {
+            font-size: 4rem;
+            margin-bottom: 25px;
+            filter: drop-shadow(0 6px 12px rgba(255, 107, 107, 0.3));
+            animation: gentleFloat 3s infinite ease-in-out;
+        }
+        
+        .final-title {
+            font-size: 2.3rem;
+            color: #FF6B6B;
+            margin-bottom: 30px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        
+        .final-subtitle {
+            font-size: 1.5rem;
+            color: #4A90E2;
+            margin-bottom: 30px;
+            font-weight: 600;
+            text-align: center;
+            background: rgba(74, 144, 226, 0.08);
+            padding: 15px 25px;
+            border-radius: 14px;
+            display: inline-block;
+        }
+        
+        .benefits-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 35px;
+            text-align: left;
+            max-width: 550px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 18px 25px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            border-left: 5px solid #4A90E2;
+            transition: transform 0.4s, box-shadow 0.4s;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+        }
+        
+        .benefit-item:hover {
+            transform: translateX(8px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* 往返权益特殊样式 */
+        .round-trip-benefit {
+            background: rgba(255, 209, 102, 0.1);
+            border-left-color: #FFD166;
+        }
+        
+        .benefit-icon {
+            font-size: 2.2rem;
+            min-width: 50px;
+            text-align: center;
+        }
+        
+        .benefit-text {
+            font-size: 1.4rem;
+            color: #1a2b5e;
+            font-weight: 600;
+        }
+        
+        .benefit-desc {
+            color: #666;
+            font-size: 1.1rem;
+            margin-top: 5px;
+            line-height: 1.5;
+        }
+        
+        .final-notice {
+            font-size: 1.3rem;
+            color: #666;
+            line-height: 1.7;
+            padding: 20px 30px;
+            background: rgba(255, 107, 107, 0.07);
+            border-radius: 16px;
+            border: 1px dashed rgba(255, 107, 107, 0.4);
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .notice-icon {
+            font-size: 1.6rem;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+        
+        /* 底部跳转提示 */
+        .next-phase-hint {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 1.2rem;
+            text-align: center;
+            margin-top: 20px;
+            padding: 16px 28px;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            opacity: 0;
+            transform: translateY(12px);
+            transition: opacity 1s, transform 1s;
+            width: 100%;
+            max-width: 480px;
+        }
+        
+        .next-phase-hint.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2.1rem;
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .title-icon {
+                font-size: 2.4rem;
+            }
+            
+            .subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .tagline {
+                font-size: 1rem;
+            }
+            
+            .main-card {
+                padding: 28px 22px;
+                min-height: 450px;
+            }
+            
+            .info-card {
+                min-width: 190px;
+                padding: 20px 24px;
+            }
+            
+            .destination {
+                font-size: 1.7rem;
+            }
+            
+            .benefit {
+                font-size: 1.2rem;
+            }
+            
+            .waiting-area {
+                padding: 18px 22px;
+            }
+            
+            .waiting-text {
+                font-size: 1.2rem;
+            }
+            
+            .loading-icons {
+                gap: 22px;
+            }
+            
+            .icon {
+                font-size: 2.8rem;
+            }
+            
+            .interaction-area {
+                padding: 25px 22px;
+            }
+            
+            .reveal-button {
+                padding: 18px 40px;
+                font-size: 1.4rem;
+            }
+            
+            .final-card {
+                padding: 30px 25px;
+            }
+            
+            .final-title {
+                font-size: 1.9rem;
+            }
+            
+            .final-subtitle {
+                font-size: 1.3rem;
+            }
+            
+            .benefits-list {
+                gap: 18px;
+                margin-bottom: 25px;
+            }
+            
+            .benefit-item {
+                padding: 15px 20px;
+                gap: 15px;
+            }
+            
+            .benefit-text {
+                font-size: 1.2rem;
+            }
+            
+            .benefit-desc {
+                font-size: 1rem;
+            }
+            
+            .scroll-container::before,
+            .scroll-container::after {
+                width: 50px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 18px 12px;
+            }
+            
+            .title {
+                font-size: 1.8rem;
+            }
+            
+            .subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .tagline {
+                font-size: 0.95rem;
+            }
+            
+            .main-card {
+                padding: 22px 18px;
+                min-height: 400px;
+            }
+            
+            .info-card {
+                min-width: 170px;
+                padding: 18px 20px;
+            }
+            
+            .destination {
+                font-size: 1.5rem;
+            }
+            
+            .benefit {
+                font-size: 1.1rem;
+                padding: 7px 14px;
+            }
+            
+            .loading-icons {
+                gap: 18px;
+            }
+            
+            .icon {
+                font-size: 2.5rem;
+            }
+            
+            .interaction-area {
+                padding: 22px 18px;
+            }
+            
+            .reveal-button {
+                padding: 16px 35px;
+                font-size: 1.3rem;
+            }
+            
+            .benefits-list {
+                gap: 15px;
+                margin-bottom: 20px;
+            }
+            
+            .benefit-item {
+                padding: 12px 18px;
+                gap: 12px;
+            }
+            
+            .benefit-text {
+                font-size: 1.1rem;
+            }
+            
+            .benefit-desc {
+                font-size: 0.95rem;
+            }
+            
+            .final-notice {
+                font-size: 1.2rem;
+                padding: 15px 20px;
+            }
+        }
+    </style>
+    <!-- 实验平台SDK插入点 -->
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="title">
+                <span class="title-icon">✈️</span>
+                盲盒启程 · 未知旅途
+            </h1>
+            <p class="subtitle">开盒见惊喜，全国随心行</p>
+            <p class="tagline">每一次开启都是新的目的地，每一段旅程都有独特体验</p>
+        </header>
+        
+        <div class="main-card">
+            <!-- 内容区域（滚动区域+等待区域） -->
+            <div class="content-area" id="contentArea">
+                <div class="scroll-container">
+                    <div id="scroll-content" class="smooth-scrolling">
+                        <!-- 信息卡片将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+                
+                <!-- 等待区域 -->
+                <div class="waiting-area" id="waitingArea">
+                    <p class="waiting-text">正在展示更多目的地组合...</p>
+                    <div class="loading-icons">
+                        <span class="icon">✈️</span>
+                        <span class="icon">🧳</span>
+                        <span class="icon">🎯</span>
+                    </div>
+                    <p class="hint">请继续观看，即将展示完整信息</p>
+                </div>
+                
+                <!-- 互动区域 - 简化，只显示按钮 -->
+                <div class="interaction-area" id="interactionArea">
+                    <button class="reveal-button" id="revealButton">
+                        <span class="button-icon">🔍</span>
+                        点击查看可能信息
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 最终悬念卡片 - 从下方升起 -->
+            <div class="final-card" id="finalCard">
+                <div class="final-icon">🎉</div>
+                <div class="final-title">恭喜！发现隐藏权益！</div>
+                
+                <div class="final-subtitle">【您的盲盒可能包含以下额外权益】</div>
+                
+                <div class="benefits-list">
+                    <div class="benefit-item">
+                        <div class="benefit-icon">🛫</div>
+                        <div>
+                            <div class="benefit-text">公务舱升舱体验</div>
+                            <div class="benefit-desc">尊享更宽敞座椅、优先登机与优质机上服务</div>
+                        </div>
+                    </div>
+                    
+                    <div class="benefit-item">
+                        <div class="benefit-icon">👥</div>
+                        <div>
+                            <div class="benefit-text">双人同行特权</div>
+                            <div class="benefit-desc">邀请一位旅伴共同出发，分享旅程美好时光</div>
+                        </div>
+                    </div>
+                    
+                    <div class="benefit-item round-trip-benefit">
+                        <div class="benefit-icon">🔁</div>
+                        <div>
+                            <div class="benefit-text">往返机票升级</div>
+                            <div class="benefit-desc">去程与归程完整安排，省心省力全程无忧，包含往返航班</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="final-notice">
+                    <span class="notice-icon">🌍</span>
+                    <strong>具体的目的地信息</strong>，将在购买时最终确认<br>
+                    （请确认后查看完整的旅行信息）
+                </div>
+            </div>
+        </div>
+        
+        <div class="next-phase-hint" id="nextPhaseHint">
+            即将展示更多详细信息...
+        </div>
+    </div>
+
+    <script>
+        // 实验开始时间记录
+        const experimentStartTime = Date.now();
+        let buttonClickTime = null;
+        let interactionStartTime = null;
+        
+        // 数据定义 - 确保目的地不重复
+        const allDestinations = [
+            "北京", "上海", "广州", "深圳", "杭州", "成都",
+            "武汉", "西安", "重庆", "南京", "青岛", "厦门",
+            "敦煌", "喀什", "阿尔山", "香格里拉", "西双版纳", "漠河",
+            "三亚", "大连", "哈尔滨", "拉萨", "丽江", "桂林"
+        ];
+        
+        const benefits = [
+            "经济舱", "公务舱", "双人同行", "往返机票"
+        ];
+        
+        // 最终隐藏权益卡片的索引
+        const FINAL_CARD_INDEX = 7; // 第8个卡片
+        const TOTAL_CARDS = 12; // 总共12个卡片
+        const TOTAL_ANIMATION_TIME = 18000; // 18秒
+        
+        // DOM元素
+        const scrollContent = document.getElementById('scroll-content');
+        const finalCard = document.getElementById('finalCard');
+        const nextPhaseHint = document.getElementById('nextPhaseHint');
+        const contentArea = document.getElementById('contentArea');
+        const waitingArea = document.getElementById('waitingArea');
+        const interactionArea = document.getElementById('interactionArea');
+        const revealButton = document.getElementById('revealButton');
+        
+        // 生成不重复的随机组合
+        function generateUniqueCombinations() {
+            const combinations = [];
+            
+            // 随机打乱目的地数组
+            const shuffledDestinations = [...allDestinations]
+                .sort(() => Math.random() - 0.5)
+                .slice(0, TOTAL_CARDS - 1); // 减去一个给隐藏卡片
+            
+            // 确保第8个卡片是"隐藏权益"卡片
+            for (let i = 0; i < TOTAL_CARDS; i++) {
+                if (i === FINAL_CARD_INDEX) {
+                    // 这是最终要显示的隐藏权益卡片
+                    combinations.push({
+                        isFinal: true,
+                        destination: "???",
+                        benefit: "即将揭晓"
+                    });
+                } else {
+                    // 使用不重复的目的地
+                    const destination = shuffledDestinations[i < FINAL_CARD_INDEX ? i : i - 1];
+                    const randomBenefit = benefits[Math.floor(Math.random() * benefits.length)];
+                    
+                    combinations.push({
+                        isFinal: false,
+                        destination: destination,
+                        benefit: randomBenefit
+                    });
+                }
+            }
+            
+            return combinations;
+        }
+        
+        // 渲染信息卡片到滚动容器
+        function renderInfoCards() {
+            const cards = generateUniqueCombinations();
+            
+            // 为了无缝滚动，我们将卡片复制一份
+            const doubledCards = [...cards, ...cards];
+            
+            doubledCards.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = `info-card ${index === FINAL_CARD_INDEX || index === cards.length + FINAL_CARD_INDEX ? 'highlight' : ''}`;
+                
+                if (card.isFinal) {
+                    // 隐藏权益卡片（特殊样式）
+                    cardElement.innerHTML = `
+                        <div class="destination" style="color: #FF6B6B; font-size: 2.1rem;">${card.destination}</div>
+                        <div class="benefit" style="background: rgba(255, 107, 107, 0.15); color: #FF6B6B; border: 1px dashed rgba(255, 107, 107, 0.4); font-size: 1.5rem;">
+                            ${card.benefit}
+                        </div>
+                    `;
+                } else {
+                    // 普通卡片
+                    cardElement.innerHTML = `
+                        <div class="destination">${card.destination}</div>
+                        <div class="benefit">${card.benefit}</div>
+                    `;
+                }
+                
+                scrollContent.appendChild(cardElement);
+            });
+            
+            return cards.length;
+        }
+        
+        // 启动滚动动画
+        function startAnimation() {
+            console.log("开始展示目的地与出行方式组合");
+            
+            // 动画结束后处理
+            setTimeout(() => {
+                animationComplete();
+            }, TOTAL_ANIMATION_TIME);
+        }
+        
+        // 动画完成：显示互动区域
+        function animationComplete() {
+            console.log("动画完成：等待用户交互");
+            
+            // 停止动画，保持当前位置
+            scrollContent.style.animation = 'none';
+            
+            // 计算需要滚动的距离，使最终卡片位于中央位置
+            const cardWidth = 220;
+            const cardGap = 24;
+            const scrollContainerWidth = document.querySelector('.scroll-container').offsetWidth;
+            
+            // 计算目标位置：使最终卡片在中央位置
+            const targetPosition = -(FINAL_CARD_INDEX * (cardWidth + cardGap) - (scrollContainerWidth / 2) + (cardWidth / 2));
+            
+            // 立即定位到目标位置
+            scrollContent.style.transform = `translateX(${targetPosition}px)`;
+            
+            // 隐藏等待区域，显示互动区域（只显示按钮）
+            setTimeout(() => {
+                waitingArea.style.display = 'none';
+                interactionArea.style.display = 'block';
+                interactionStartTime = Date.now();
+                
+                console.log("显示互动区域（仅按钮），等待用户点击");
+                
+            }, 800);
+        }
+        
+        // 显示最终悬念卡片
+        function showFinalCard() {
+            console.log("用户点击按钮：显示可能信息");
+            buttonClickTime = Date.now();
+            
+            // 禁用按钮，防止重复点击
+            revealButton.disabled = true;
+            revealButton.innerHTML = '<span class="button-icon">⏳</span>正在加载...';
+            
+            // 首先让上方内容淡出并上移
+            contentArea.classList.add('hidden');
+            
+            // 0.5秒后开始升起最终卡片
+            setTimeout(() => {
+                finalCard.classList.add('show');
+                console.log("最终卡片从下方缓缓升起，揭示隐藏权益");
+                
+                // 确保页面滚动到能看到全部内容
+                finalCard.scrollTop = 0;
+                
+                // 3秒后显示跳转提示
+                setTimeout(() => {
+                    nextPhaseHint.classList.add('show');
+                    console.log("跳转提示显示");
+                    
+                    // 计算并记录实验数据
+                    const totalExperimentTime = Date.now() - experimentStartTime;
+                    const interactionDuration = interactionStartTime ? buttonClickTime - interactionStartTime : null;
+                    
+                    console.log(`低交互水平实验数据：
+                    - 总实验时间: ${totalExperimentTime}ms (${Math.round(totalExperimentTime/1000)}秒)
+                    - 滚动展示时间: ${TOTAL_ANIMATION_TIME}ms (${TOTAL_ANIMATION_TIME/1000}秒)
+                    - 互动等待时间: ${interactionDuration ? interactionDuration + 'ms' : 'N/A'}
+                    - 展示组合数量: ${TOTAL_CARDS}
+                    - 每组合展示时间: ${Math.round(TOTAL_ANIMATION_TIME/TOTAL_CARDS)}ms
+                    - 所有目的地均不重复
+                    - 用户主动点击按钮揭示信息
+                    - 互动区域只显示按钮，无多余文字
+                    `);
+                    
+                }, 3000);
+            }, 500);
+        }
+        
+        // 初始化页面
+        function initPage() {
+            // 渲染卡片
+            const originalCardCount = renderInfoCards();
+            
+            // 计算动画参数
+            const cardWidth = 220;
+            const cardGap = 24;
+            
+            // 计算每张卡片显示时间
+            const cardsInView = Math.floor(1560 / (cardWidth + cardGap));
+            const timePerCard = TOTAL_ANIMATION_TIME / cardsInView;
+            
+            console.log(`低交互水平实验参数：
+            - 展示组合总数: ${originalCardCount}
+            - 卡片宽度: ${cardWidth}px
+            - 卡片间距: ${cardGap}px
+            - 总滚动距离: 1560px
+            - 总滚动时间: ${TOTAL_ANIMATION_TIME}ms (${TOTAL_ANIMATION_TIME/1000}秒)
+            - 每组合展示时间: ${Math.round(timePerCard)}ms (${(timePerCard/1000).toFixed(2)}秒)
+            - 滚动速度: ${(1560 / (TOTAL_ANIMATION_TIME/1000)).toFixed(1)}px/秒
+            - 所有目的地均不重复
+            - 需要用户点击按钮继续查看
+            - 互动区域只显示按钮，简洁明了
+            `);
+            
+            // 绑定按钮点击事件
+            revealButton.addEventListener('click', showFinalCard);
+            
+            // 开始展示流程
+            setTimeout(startAnimation, 1200);
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', initPage);
+        
+        // 防止用户干扰流程
+        document.addEventListener('touchstart', (e) => {
+            if (e.target.closest('.scroll-container')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        document.addEventListener('wheel', (e) => {
+            if (e.target.closest('.scroll-container')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        // 确保最终卡片内容完整显示
+        window.addEventListener('resize', () => {
+            if (finalCard.classList.contains('show')) {
+                finalCard.scrollTop = 0;
+            }
+        });
+    </script>
+    
+    <!-- 实验平台外链插入点 -->
+</body>
+</html>
